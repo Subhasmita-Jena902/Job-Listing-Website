@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Listing Website</title>
+
+<style>
+
+/* =========================
+   GLOBAL STYLING
+========================= */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f6f9;
+}
+
+/* =========================
+   HEADER SECTION
+========================= */
+header {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Hamburger icon (visible only on mobile) */
+.hamburger {
+    font-size: 28px;
+    cursor: pointer;
+    display: none;
+}
+
+/* =========================
+   FILTER SECTION
+========================= */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    justify-content: center;
+    background: white;
+}
+
+.filters input,
+.filters select,
+.filters button {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Filter buttons styling */
+.filters button {
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+/* =========================
+   JOB CARD SECTION
+========================= */
+#job-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.job-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
+}
+
+.job-card:hover {
+    transform: translateY(-5px);
+}
+
+.job-card button {
+    margin-top: 8px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Button colors */
+.view-btn {
+    background-color: #27ae60;
+    color: white;
+}
+
+.save-btn {
+    background-color: #e67e22;
+    color: white;
+}
+
+/* =========================
+   MODAL STYLING
+========================= */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    margin: 10% auto;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+}
+
+.close {
+    float: right;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+@media (max-width: 768px) {
+
+    .hamburger {
+        display: block;
+    }
+
+    .filters {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .filters.active {
+        display: flex;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     HEADER
+========================= -->
+<header>
+    <div class="nav-container">
+        <h1>Job Listing Portal - India</h1>
+        <div class="hamburger" onclick="toggleMenu()">☰</div>
+    </div>
+</header>
+
+<!-- =========================
+     FILTER CONTROLS
+========================= -->
+<section class="filters">
+
+    <input type="text" id="search" placeholder="Search Job Title">
+
+    <select id="locationFilter">
+        <option value="">All Locations</option>
+        <option>Mumbai</option>
+        <option>Delhi</option>
+        <option>Bengaluru</option>
+        <option>Hyderabad</option>
+        <option>Chennai</option>
+        <option>Kolkata</option>
+        <option>Pune</option>
+        <option>Ahmedabad</option>
+        <option>Jaipur</option>
+        <option>Lucknow</option>
+        <option>Bhubaneswar</option>
+        <option>Chandigarh</option>
+        <option>Indore</option>
+        <option>Surat</option>
+        <option>Goa</option>
+    </select>
+
+    <select id="categoryFilter">
+        <option value="">All Categories</option>
+        <option>IT</option>
+        <option>Marketing</option>
+        <option>Design</option>
+        <option>Finance</option>
+        <option>HR</option>
+    </select>
+
+    <select id="experienceFilter">
+        <option value="">All Experience</option>
+        <option>Fresher</option>
+        <option>Mid-Level</option>
+        <option>Senior</option>
+    </select>
+
+    <button onclick="filterJobs()">Filter</button>
+    <button onclick="clearFilters()">Clear</button>
+
+</section>
+
+<!-- =========================
+     JOB LIST CONTAINER
+========================= -->
+<section id="job-container"></section>
+
+<!-- =========================
+     JOB DETAILS MODAL
+========================= -->
+<div id="jobModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">X</span>
+        <h3 id="modalTitle"></h3>
+        <p id="modalDescription"></p>
+    </div>
+</div>
+
+<script>
+
+/* =========================
+   JOB DATA
+========================= */
+const jobList = [
+    { title:"Frontend Developer", company:"Tech Solutions", location:"Bengaluru", category:"IT", experience:"Fresher", description:"Develop responsive websites using modern technologies." },
+    { title:"Backend Developer", company:"CodeWorld", location:"Hyderabad", category:"IT", experience:"Mid-Level", description:"Build APIs and manage databases." },
+    { title:"UI/UX Designer", company:"Creative Studio", location:"Mumbai", category:"Design", experience:"Senior", description:"Design modern and user-friendly interfaces." },
+    { title:"Digital Marketer", company:"MarketPro", location:"Delhi", category:"Marketing", experience:"Fresher", description:"Handle SEO and social media marketing." },
+    { title:"HR Executive", company:"PeopleFirst", location:"Pune", category:"HR", experience:"Mid-Level", description:"Manage recruitment and employee relations." },
+    { title:"Finance Analyst", company:"FinCorp", location:"Chennai", category:"Finance", experience:"Senior", description:"Analyze financial data and prepare reports." },
+    { title:"Software Tester", company:"QualitySoft", location:"Kolkata", category:"IT", experience:"Fresher", description:"Perform manual and automated testing." },
+    { title:"Graphic Designer", company:"DesignHub", location:"Jaipur", category:"Design", experience:"Mid-Level", description:"Create marketing and branding materials." },
+    { title:"Full Stack Developer", company:"InnovateTech", location:"Ahmedabad", category:"IT", experience:"Senior", description:"Work on both frontend and backend systems." },
+    { title:"Content Writer", company:"MediaWorks", location:"Goa", category:"Marketing", experience:"Fresher", description:"Write blogs and articles." },
+    { title:"Web Developer", company:"Eastern Tech", location:"Bhubaneswar", category:"IT", experience:"Fresher", description:"Build and maintain business websites." }
+];
+
+/* =========================
+   DISPLAY JOBS
+========================= */
+function displayJobs(jobsToShow) {
+
+    const container = document.getElementById("job-container");
+    container.innerHTML = "";
+
+    if (jobsToShow.length === 0) {
+        container.innerHTML = "<p>No Jobs Found</p>";
+        return;
+    }
+
+    jobsToShow.forEach(job => {
+
+        const cardHTML = `
+            <div class="job-card">
+                <h3>${job.title}</h3>
+                <p><strong>Company:</strong> ${job.company}</p>
+                <p><strong>Location:</strong> ${job.location}</p>
+                <p><strong>Experience:</strong> ${job.experience}</p>
+                <button class="view-btn" onclick="viewMore('${job.title}','${job.description}')">View More</button>
+                <button class="save-btn" onclick="saveJob('${job.title}')">Save Job</button>
+            </div>
+        `;
+
+        container.innerHTML += cardHTML;
+    });
+}
+
+/* =========================
+   FILTER LOGIC
+========================= */
+function filterJobs() {
+
+    const keyword = document.getElementById("search").value.toLowerCase();
+    const location = document.getElementById("locationFilter").value;
+    const category = document.getElementById("categoryFilter").value;
+    const experience = document.getElementById("experienceFilter").value;
+
+    const filteredJobs = jobList.filter(job =>
+        job.title.toLowerCase().includes(keyword) &&
+        (location === "" || job.location === location) &&
+        (category === "" || job.category === category) &&
+        (experience === "" || job.experience === experience)
+    );
+
+    displayJobs(filteredJobs);
+}
+
+/* =========================
+   CLEAR FILTERS
+========================= */
+function clearFilters() {
+    document.getElementById("search").value = "";
+    document.getElementById("locationFilter").value = "";
+    document.getElementById("categoryFilter").value = "";
+    document.getElementById("experienceFilter").value = "";
+    displayJobs(jobList);
+}
+
+/* =========================
+   MOBILE MENU TOGGLE
+========================= */
+function toggleMenu() {
+    document.querySelector(".filters").classList.toggle("active");
+}
+
+/* =========================
+   MODAL FUNCTIONS
+========================= */
+function viewMore(title, description) {
+    document.getElementById("modalTitle").innerText = title;
+    document.getElementById("modalDescription").innerText = description;
+    document.getElementById("jobModal").style.display = "block";
+}
+
+function closeModal() {
+    document.getElementById("jobModal").style.display = "none";
+}
+
+/* =========================
+   INITIAL LOAD
+========================= */
+displayJobs(jobList);
+
+</script>
+
+</body>
+</html>
